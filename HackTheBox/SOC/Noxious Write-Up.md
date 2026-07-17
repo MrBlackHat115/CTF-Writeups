@@ -26,7 +26,7 @@
         However, the capture also shows Forela-Wkstn001 responding to the exact same query. 
         This behavior is suspicious because Forela-Wkstn001 does not own the hostname DCC01 and therefore should not be answering requests for it.
 
-        In conclusion, the malicious host is **Forela-Wkstn001** because it responded to an LLMNR query intended for DCC01, even though it is not the legitimate owner of that hostname.
+        In conclusion, the malicious host is **172.17.79.135** because it responded to an LLMNR query intended for DCC01, even though it is not the legitimate owner of that hostname.
         
 
 - **Task 2**
