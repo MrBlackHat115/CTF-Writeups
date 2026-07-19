@@ -14,8 +14,8 @@
 <img width="1011" height="711" alt="image" src="https://github.com/user-attachments/assets/27c0591e-06a6-47d0-a89a-a967670bde85" />
 
 - We perform and nmap scan on the target machine, and we found two ports open
-  - Port 22
-  - Port 80
+  - `Port 22`
+  - `Port 80`
 
 <img width="861" height="388" alt="image" src="https://github.com/user-attachments/assets/b9b7ae04-327d-4a50-b198-241191c22bda" />
 
@@ -32,7 +32,6 @@
 <img width="1349" height="605" alt="image" src="https://github.com/user-attachments/assets/78d33dea-6df0-4c36-bb8b-93867a82e61e" />
 
 <img width="585" height="317" alt="image" src="https://github.com/user-attachments/assets/a38ee3c5-16ba-4875-b0c2-01e74033bb3c" />
-
 
 - Now we head to admin.cyprusbank.thm and use the credentials that have been given to us to log in to the admin panel.
 
@@ -75,28 +74,44 @@
 
 - We receive a connection back and are the user web. In the home directory of web we find the first flag. After we have received our reverse shell, we then upgrade it.
   - **Upgrade to Interactive Shell:**
-    - python3 -c 'import pty; pty.spawn("/bin/bash")'
-    - export TERM=xterm
-    - CTRL+Z
-    - stty raw -echo
-    - Fg
+    - `python3 -c 'import pty; pty.spawn("/bin/bash")'`
+    - `export TERM=xterm`
+    - `CTRL+Z`
+    - `stty raw -echo`
+    - `Fg`
    
 <img width="412" height="164" alt="image" src="https://github.com/user-attachments/assets/eda9b904-0701-4338-bf13-007078889a57" />
 
 - After we received our upgraded shell, we moved around, and it didn't take us long to find user.txt, which contains the first flag.
 
+<img width="890" height="218" alt="Screenshot 2026-07-19 171817" src="https://github.com/user-attachments/assets/3985a8dc-c200-489c-9851-41aaa911e4a7" />
 
+- To determine whether we could escalate privileges, we first checked the user's sudo permissions by running:
 
-<img width="1657" height="731" alt="image" src="https://github.com/user-attachments/assets/0e333696-f55f-49dc-abd8-98d458b5182d" />
+  - `sudo -l`
 
+- The output showed that we were allowed to run sudoedit as root without providing a password:
+
+  - `(root) NOPASSWD: sudoedit /etc/nginx/sites-available/admin.cyprusbank.thm`
+
+<img width="1305" height="867" alt="image" src="https://github.com/user-attachments/assets/e88f992c-c976-4518-82aa-99ff5c10b0a6" />
+
+- Since sudoedit has had known privilege escalation vulnerabilities, we searched for publicly available research and found an analysis of CVE-2023-22809.
+
+- According to the exploit details, the vulnerability affects sudo versions 1.8.0 through 1.9.12p1. To verify whether the target was vulnerable, we checked the installed sudo version by running:
+
+  - `sudo -V`
 
 <img width="417" height="100" alt="image" src="https://github.com/user-attachments/assets/8bf1488f-b391-44e1-842c-1848bd10da8c" />
 
+- The output showed `sudo 1.9.12p1`, confirming that the target was within the vulnerable version range.
 
-- To find out if we can escalte privilages, we checked sudo privil;eges by entering:
-  - sudo -l
-- We found out out that we can run sudoedit as toot with no password. So we use the serach engione to find out what we can dio and we checed out this github link:
-  - https://github.com/n3m1sys/CVE-2023-22809-sudoedit-privesc
-Accoringing to this exploit, this exploit with succesfully wor if the system sudo version is 1.8.0 to 1.9.12p1.  We cheched the version by running:
-  - sudo -V
-And we get sudo 1.9.12p1, which is perfect. after downloading and runnign the script, 
+<img width="814" height="475" alt="image" src="https://github.com/user-attachments/assets/7c5fe691-b29e-4574-8707-8c0cbd99de77" />
+
+- We then exploited the vulnerability by setting the EDITOR environment variable so that sudoedit would open the root.txt file instead of only the permitted configuration file:
+
+  - `export EDITOR="vi -- /root/root.txt"`
+  - `sudo sudoedit /etc/nginx/sites-available/admin.cyprusbank.thm`
+  
+- Because the vulnerable version of sudoedit did not properly validate the EDITOR environment variable, we were able to access root.txt with root privileges.
+- After reading the contents of root.txt, we obtained the final flag, successfully completed the privilege escalation, and finished the machine.
